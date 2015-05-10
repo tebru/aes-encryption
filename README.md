@@ -1,6 +1,7 @@
 # PHP AES Encrypter
 
 [![Build Status](https://travis-ci.org/tebru/aes-encryption.svg?branch=master)](https://travis-ci.org/tebru/aes-encryption)
+[![Coverage Status](https://coveralls.io/repos/tebru/aes-encryption/badge.svg?branch=master)](https://coveralls.io/r/tebru/aes-encryption?branch=master)
 
 A simple class to handle AES encryption of data
 
