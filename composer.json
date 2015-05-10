@@ -1,0 +1,27 @@
+{
+    "name": "tebru/aes-encryption",
+    "description": "An AES Encrypter for PHP",
+    "require": {
+        "php": ">=5.4",
+        "ext-mcrypt": "*",
+        "tebru/assert": "~0.1"
+    },
+    "require-dev": {
+        "php": ">=5.5",
+        "phpunit/phpunit": "~4.6",
+        "mockery/mockery": "0.9.*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nate Brunette",
+            "email": "n@tebru.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Tebru\\AesEncryption\\": "src/",
+            "Tebru\\AesEncryption\\Test\\": "tests/"
+        }
+    }
+}
