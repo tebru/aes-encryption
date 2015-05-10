@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/tebru/aes-encryption.svg?branch=master)](https://travis-ci.org/tebru/aes-encryption)
 
-A simple class to hand AES encryption of data
+A simple class to handle AES encryption of data
 
 *DISCLAIMER: While the encryption/decryption has been tested, it has not been vetted by a security expert.  Use at your own risk.*
 
