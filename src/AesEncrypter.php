@@ -81,13 +81,18 @@ class AesEncrypter
     /**
      * Decrypts data encrypted through encrypt() method
      *
-     * @param mixed $data
+     * @param string $data
      * @return mixed
      * @throws IvSizeMismatchException If the IV length has been altered
      * @throws MacHashMismatchException If the data has been altered
      */
     public function decrypt($data)
     {
+        // if this is not an encrypted string
+        if (false === strpos($data, '|')) {
+            return $data;
+        }
+
         list($encryptedData, $iv) = $this->decodeData($data);
 
         Tebru\assert(strlen($iv) === $this->getIvSize(), new IvSizeMismatchException('IV size does not match expectation'));

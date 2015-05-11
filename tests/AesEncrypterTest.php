@@ -96,6 +96,13 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
         $this->simpleAssert($blockSize, $mode, new \stdClass());
     }
 
+    public function testWillNotDecryptedNonEncryptedString()
+    {
+        $encrypter = new AesEncrypter($this->generateKey());
+        $result = $encrypter->decrypt(null);
+        $this->assertEquals(null, $result);
+    }
+
     /**
      * @expectedException \Tebru\AesEncryption\Exception\IvSizeMismatchException
      */
