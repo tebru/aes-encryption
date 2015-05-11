@@ -54,8 +54,6 @@ class AesEncrypter
      */
     public function __construct($key, $blockSize = CipherEnum::BLOCK_SIZE_128, $mode = ModeEnum::MODE_CBC)
     {
-        Tebru\assert(ctype_xdigit($key) && self::KEY_LENGTH === strlen($key), new InvalidKeyException('Key must be a 64 character hexadecimal string'));
-
         $this->key = $key;
         $this->cipher = CipherEnum::get($blockSize);
         $this->mode = ModeEnum::get($mode);
@@ -135,7 +133,7 @@ class AesEncrypter
      */
     private function getKey()
     {
-        return pack('H*', $this->key);
+        return pack('H*', hash('sha256', $this->key));
     }
 
     /**

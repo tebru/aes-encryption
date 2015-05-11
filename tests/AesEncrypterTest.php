@@ -128,27 +128,19 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Tebru\AesEncryption\Exception\InvalidKeyException
-     */
-    public function testInvalidKeyLengthThrowsException()
-    {
-        new AesEncrypter('test');
-    }
-
-    /**
-     * @expectedException \Tebru\AesEncryption\Exception\InvalidKeyException
-     */
-    public function testInvalidKeyThrowsException()
-    {
-        new AesEncrypter('!111111111111111111111111111111111111111111111111111111111111111');
-    }
-
-    /**
      * @expectedException \Tebru\AesEncryption\Exception\InvalidBlockSizeException
      */
     public function testInvalidBlockSizeThrowsException()
     {
         new AesEncrypter($this->generateKey(), 129);
+    }
+
+    public function testKeyWithCharacters()
+    {
+        $encrypter = new AesEncrypter('!@#$ashYJD56902345&*(_\'"ds6');
+        $encrypted = $encrypter->encrypt(self::TEST_STRING);
+        $decrypted = $encrypter->decrypt($encrypted);
+        $this->assertEquals(self::TEST_STRING, $decrypted);
     }
 
     /**
@@ -169,7 +161,7 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
 
     private function generateKey()
     {
-        return substr(bin2hex(openssl_random_pseudo_bytes(64)), 0, 64);
+        return bin2hex(openssl_random_pseudo_bytes(mt_rand(0, 100)));
     }
 
     public function encrypterIterations()
