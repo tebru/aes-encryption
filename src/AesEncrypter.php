@@ -8,7 +8,7 @@ namespace Tebru\AesEncryption;
 use Tebru;
 use Tebru\AesEncryption\Enum\CipherEnum;
 use Tebru\AesEncryption\Enum\ModeEnum;
-use Tebru\AesEncryption\Exception\InvalidKeyException;
+use Tebru\AesEncryption\Exception\InvalidNumberOfEncryptionPieces;
 use Tebru\AesEncryption\Exception\IvSizeMismatchException;
 use Tebru\AesEncryption\Exception\MacHashMismatchException;
 
@@ -69,9 +69,9 @@ class AesEncrypter
     {
         $serializedData = serialize($data);
         $iv = $this->createIv();
-        $mac = $this->getMac($serializedData);
-        $encrypted = $this->createEncrypted($serializedData, $mac, $iv);
-        $encoded = $this->createEncoded($encrypted, $iv);
+        $encrypted = $this->createEncrypted($serializedData, $iv);
+        $mac = $this->getMac($encrypted);
+        $encoded = $this->createEncoded($encrypted, $mac, $iv);
 
         return $encoded;
     }
@@ -91,15 +91,12 @@ class AesEncrypter
             return $data;
         }
 
-        list($encryptedData, $iv) = $this->decodeData($data);
+        list($encryptedData, $mac, $iv) = $this->decodeData($data);
 
+        Tebru\assert($mac === $this->getMac($encryptedData), new MacHashMismatchException('MAC hashes do not match'));
         Tebru\assert(strlen($iv) === $this->getIvSize(), new IvSizeMismatchException('IV size does not match expectation'));
 
-        $decryptedWithMac = $this->decryptData($encryptedData, $iv);
-        $serializedData = substr($decryptedWithMac, 0, -self::KEY_LENGTH);
-        $mac = substr($decryptedWithMac, -self::KEY_LENGTH);
-
-        Tebru\assert($mac === $this->getMac($serializedData), new MacHashMismatchException('MAC hashes do not match'));
+        $serializedData = $this->decryptData($encryptedData, $iv);
 
         $decrypted = unserialize($serializedData);
 
@@ -154,25 +151,25 @@ class AesEncrypter
      * Encrypt data
      *
      * @param string $data
-     * @param string $mac
      * @param string $iv
      * @return string
      */
-    private function createEncrypted($data, $mac, $iv)
+    private function createEncrypted($data, $iv)
     {
-        return mcrypt_encrypt($this->cipher, $this->getKey(), $data . $mac, $this->mode, $iv);
+        return mcrypt_encrypt($this->cipher, $this->getKey(), $data, $this->mode, $iv);
     }
 
     /**
      * Encode data/iv using base64 and pipe-delimited
      *
      * @param mixed $encryptedData
+     * @param string $mac
      * @param string $iv
      * @return string
      */
-    private function createEncoded($encryptedData, $iv)
+    private function createEncoded($encryptedData, $mac, $iv)
     {
-        return base64_encode($encryptedData) . '|' . base64_encode($iv);
+        return base64_encode($encryptedData) . '|' . base64_encode($mac) . '|' . base64_encode($iv);
     }
 
     /**
@@ -185,7 +182,9 @@ class AesEncrypter
     {
         $decoded = explode('|', $data);
 
-        return [base64_decode($decoded[0]), base64_decode($decoded[1])];
+        Tebru\assert(3 === sizeof($decoded), new InvalidNumberOfEncryptionPieces('Encrypted string has been modified, wrong number of pieces found'));
+
+        return [base64_decode($decoded[0]), base64_decode($decoded[1]), base64_decode($decoded[2])];
     }
 
     /**
