@@ -17,7 +17,7 @@ composer require tebru/aes-encryption:0.1.*
 
 ## Usage
 
-Simply instantiate the encrypter class with a 64 character key and use the `encrypt`/`decrypt` methods
+Simply instantiate the encrypter class with a key and use the `encrypt`/`decrypt` methods
 
 ```php
 <?php
