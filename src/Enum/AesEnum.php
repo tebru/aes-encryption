@@ -24,7 +24,7 @@ class AesEnum
      * @param $method
      * @return mixed
      */
-    static public function getKeySize($method)
+    public static function getKeySize($method)
     {
         $keySizes = self::getKeySizes();
         if (!in_array($method, array_keys($keySizes), true)) {
@@ -39,7 +39,7 @@ class AesEnum
      *
      * @return array
      */
-    static private function getKeySizes()
+    private static function getKeySizes()
     {
         return [
             self::METHOD_128 => 16,
