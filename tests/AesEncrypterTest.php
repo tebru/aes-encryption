@@ -8,6 +8,7 @@ namespace Tebru\AesEncryption\Test;
 use PHPUnit_Framework_TestCase;
 use Tebru\AesEncryption\AesEncrypter;
 use Tebru\AesEncryption\Enum\AesEnum;
+use Tebru\AesEncryption\Strategy\OpenSslStrategy;
 
 /**
  * Class AesEncrypterTest
@@ -20,72 +21,79 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testcanEncryptString($method)
+    public function testcanEncryptString($method, $strategy)
     {
-        $this->simpleAssert($method, self::TEST_STRING);
+        $this->simpleAssert($method, $strategy, self::TEST_STRING);
     }
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptInteger($method)
+    public function testCanEncryptInteger($method, $strategy)
     {
-        $this->simpleAssert($method, 1);
+        $this->simpleAssert($method, $strategy, 1);
     }
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptDecimal($method)
+    public function testCanEncryptDecimal($method, $strategy)
     {
-        $this->simpleAssert($method, 1.9);
+        $this->simpleAssert($method, $strategy, 1.9);
     }
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptBool($method)
+    public function testCanEncryptBool($method, $strategy)
     {
-        $this->simpleAssert($method, false);
+        $this->simpleAssert($method, $strategy, false);
     }
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptNull($method)
+    public function testCanEncryptNull($method, $strategy)
     {
-        $this->simpleAssert($method, null);
+        $this->simpleAssert($method, $strategy, null);
     }
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptArray($method)
+    public function testCanEncryptArray($method, $strategy)
     {
-        $this->simpleAssert($method, ['test' => ['test' => 'test']]);
+        $this->simpleAssert($method, $strategy, ['test' => ['test' => 'test']]);
     }
 
     /**
      * @param $method
+     * @param $strategy
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptObject($method)
+    public function testCanEncryptObject($method, $strategy)
     {
-        $this->simpleAssert($method, new \stdClass());
+        $this->simpleAssert($method, $strategy, new \stdClass());
     }
 
     public function testWillNotDecryptedNonEncryptedString()
@@ -136,9 +144,16 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
         $encrypter->encrypt('test');
     }
 
-    private function simpleAssert($method, $data)
+    public function testWillUseOpenSslByDefault()
     {
-        $encrypter = new AesEncrypter($this->generateKey(), $method);
+        $encrypter = new AesEncrypter($this->generateKey());
+
+        $this->assertAttributeInstanceOf(OpenSslStrategy::class, 'strategy', $encrypter);
+    }
+
+    private function simpleAssert($method, $strategy, $data)
+    {
+        $encrypter = new AesEncrypter($this->generateKey(), $method, $strategy);
         $encrypted = $encrypter->encrypt($data);
         $result = $encrypter->decrypt($encrypted);
         $this->assertEquals($data, $result);
@@ -152,9 +167,12 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
     public function encrypterIterations()
     {
         return [
-            [AesEnum::METHOD_128],
-            [AesEnum::METHOD_192],
-            [AesEnum::METHOD_256],
+            [AesEnum::METHOD_128, AesEncrypter::STRATEGY_OPENSSL],
+            [AesEnum::METHOD_192, AesEncrypter::STRATEGY_OPENSSL],
+            [AesEnum::METHOD_256, AesEncrypter::STRATEGY_OPENSSL],
+            [AesEnum::METHOD_128, AesEncrypter::STRATEGY_MCRYPT],
+            [AesEnum::METHOD_192, AesEncrypter::STRATEGY_MCRYPT],
+            [AesEnum::METHOD_256, AesEncrypter::STRATEGY_MCRYPT],
         ];
     }
 }
