@@ -6,8 +6,7 @@
 namespace Tebru\AesEncryption;
 
 use Tebru;
-use Tebru\AesEncryption\Enum\CipherEnum;
-use Tebru\AesEncryption\Enum\ModeEnum;
+use Tebru\AesEncryption\Enum\AesEnum;
 use Tebru\AesEncryption\Exception\InvalidNumberOfEncryptionPieces;
 use Tebru\AesEncryption\Exception\IvSizeMismatchException;
 use Tebru\AesEncryption\Exception\MacHashMismatchException;
@@ -19,10 +18,12 @@ use Tebru\AesEncryption\Exception\MacHashMismatchException;
  */
 class AesEncrypter
 {
-    /**
-     * The allowed key length
+    /**#@+
+     * Encryption constants
      */
-    const KEY_LENGTH = 64;
+    const ENCRYPTION_CIPHER = MCRYPT_RIJNDAEL_128;
+    const ENCRYPTION_MODE = MCRYPT_MODE_CBC;
+    /**#@-*/
 
     /**
      * A secret key
@@ -32,31 +33,20 @@ class AesEncrypter
     private $key;
 
     /**
-     * The cipher type
-     *
      * @var string
      */
-    private $cipher;
-
-    /**
-     * The encryption mode
-     *
-     * @var string
-     */
-    private $mode;
+    private $method;
 
     /**
      * Constructor
      *
      * @param string $key The secret key
-     * @param int $blockSize The cipher block size (128, 192, or 256)
-     * @param string $mode The encryption mode
+     * @param string $method
      */
-    public function __construct($key, $blockSize = CipherEnum::BLOCK_SIZE_128, $mode = ModeEnum::MODE_CBC)
+    public function __construct($key, $method = AesEnum::METHOD_256)
     {
         $this->key = $key;
-        $this->cipher = CipherEnum::get($blockSize);
-        $this->mode = ModeEnum::get($mode);
+        $this->method = $method;
     }
 
     /**
@@ -120,7 +110,7 @@ class AesEncrypter
      */
     private function getIvSize()
     {
-        return mcrypt_get_iv_size($this->cipher, $this->mode);
+        return mcrypt_get_iv_size(self::ENCRYPTION_CIPHER, self::ENCRYPTION_MODE);
     }
 
     /**
@@ -130,21 +120,28 @@ class AesEncrypter
      */
     private function getKey()
     {
-        return pack('H*', hash('sha256', $this->key));
+        // first create a sha256 hash of the key
+        $hash = hash('sha256', $this->key);
+
+        // create a binary string from the hash
+        $binary = hex2bin($hash);
+
+        // limit the key size based on our encryption method
+        $keySize = AesEnum::getKeySize($this->method);
+        $key = substr($binary, 0, $keySize);
+
+        return $key;
     }
 
     /**
-     * Get hmac hash of data using sha256 and a 32 character key
+     * Get hmac hash of data
      *
      * @param $data
      * @return string
      */
     private function getMac($data)
     {
-        // make the key 32 characters
-        $key = substr(bin2hex($this->getKey()), -(self::KEY_LENGTH / 2));
-
-        return hash_hmac('sha256', $data, $key);
+        return hash_hmac('sha256', $data, $this->getKey());
     }
 
     /**
@@ -156,7 +153,7 @@ class AesEncrypter
      */
     private function createEncrypted($data, $iv)
     {
-        return mcrypt_encrypt($this->cipher, $this->getKey(), $data, $this->mode, $iv);
+        return mcrypt_encrypt(self::ENCRYPTION_CIPHER, $this->getKey(), $data, self::ENCRYPTION_MODE, $iv);
     }
 
     /**
@@ -196,6 +193,6 @@ class AesEncrypter
      */
     private function decryptData($data, $iv)
     {
-        return trim(mcrypt_decrypt($this->cipher, $this->getKey(), $data, $this->mode, $iv));
+        return trim(mcrypt_decrypt(self::ENCRYPTION_CIPHER, $this->getKey(), $data, self::ENCRYPTION_MODE, $iv));
     }
 }

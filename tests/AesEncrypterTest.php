@@ -7,8 +7,7 @@ namespace Tebru\AesEncryption\Test;
 
 use PHPUnit_Framework_TestCase;
 use Tebru\AesEncryption\AesEncrypter;
-use Tebru\AesEncryption\Enum\CipherEnum;
-use Tebru\AesEncryption\Enum\ModeEnum;
+use Tebru\AesEncryption\Enum\AesEnum;
 
 /**
  * Class AesEncrypterTest
@@ -20,80 +19,73 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
     const TEST_STRING = 'The "quick" brown \'fox\' jumped 0ver the lazy dog!?';
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testcanEncryptString($blockSize, $mode)
+    public function testcanEncryptString($method)
     {
-        $this->simpleAssert($blockSize, $mode, self::TEST_STRING);
+        $this->simpleAssert($method, self::TEST_STRING);
     }
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptInteger($blockSize, $mode)
+    public function testCanEncryptInteger($method)
     {
-        $this->simpleAssert($blockSize, $mode, 1);
+        $this->simpleAssert($method, 1);
     }
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptDecimal($blockSize, $mode)
+    public function testCanEncryptDecimal($method)
     {
-        $this->simpleAssert($blockSize, $mode, 1.9);
+        $this->simpleAssert($method, 1.9);
     }
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptBool($blockSize, $mode)
+    public function testCanEncryptBool($method)
     {
-        $this->simpleAssert($blockSize, $mode, false);
+        $this->simpleAssert($method, false);
     }
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptNull($blockSize, $mode)
+    public function testCanEncryptNull($method)
     {
-        $this->simpleAssert($blockSize, $mode, null);
+        $this->simpleAssert($method, null);
     }
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptArray($blockSize, $mode)
+    public function testCanEncryptArray($method)
     {
-        $this->simpleAssert($blockSize, $mode, ['test' => ['test' => 'test']]);
+        $this->simpleAssert($method, ['test' => ['test' => 'test']]);
     }
 
     /**
-     * @param $blockSize
-     * @param $mode
+     * @param $method
      *
      * @dataProvider encrypterIterations
      */
-    public function testCanEncryptObject($blockSize, $mode)
+    public function testCanEncryptObject($method)
     {
-        $this->simpleAssert($blockSize, $mode, new \stdClass());
+        $this->simpleAssert($method, new \stdClass());
     }
 
     public function testWillNotDecryptedNonEncryptedString()
@@ -127,14 +119,6 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(self::TEST_STRING, $result);
     }
 
-    /**
-     * @expectedException \Tebru\AesEncryption\Exception\InvalidBlockSizeException
-     */
-    public function testInvalidBlockSizeThrowsException()
-    {
-        new AesEncrypter($this->generateKey(), 129);
-    }
-
     public function testKeyWithCharacters()
     {
         $encrypter = new AesEncrypter('!@#$ashYJD56902345&*(_\'"ds6');
@@ -144,16 +128,17 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Tebru\AesEncryption\Exception\InvalidModeException
+     * @expectedException \Tebru\AesEncryption\Exception\InvalidMethodException
      */
-    public function testInvalidModeThrowsException()
+    public function testInvalidMethodThrowsException()
     {
-        new AesEncrypter($this->generateKey(), CipherEnum::BLOCK_SIZE_256, 'test');
+        $encrypter = new AesEncrypter($this->generateKey(), 'test');
+        $encrypter->encrypt('test');
     }
 
-    private function simpleAssert($blockSize, $mode, $data)
+    private function simpleAssert($method, $data)
     {
-        $encrypter = new AesEncrypter($this->generateKey(), $blockSize, $mode);
+        $encrypter = new AesEncrypter($this->generateKey(), $method);
         $encrypted = $encrypter->encrypt($data);
         $result = $encrypter->decrypt($encrypted);
         $this->assertEquals($data, $result);
@@ -167,21 +152,9 @@ class AesEncrypterTest extends PHPUnit_Framework_TestCase
     public function encrypterIterations()
     {
         return [
-            [CipherEnum::BLOCK_SIZE_128, ModeEnum::MODE_CBC],
-            [CipherEnum::BLOCK_SIZE_128, ModeEnum::MODE_CFB],
-            [CipherEnum::BLOCK_SIZE_128, ModeEnum::MODE_ECB],
-            [CipherEnum::BLOCK_SIZE_128, ModeEnum::MODE_NOFB],
-            [CipherEnum::BLOCK_SIZE_128, ModeEnum::MODE_OFB],
-            [CipherEnum::BLOCK_SIZE_192, ModeEnum::MODE_CBC],
-            [CipherEnum::BLOCK_SIZE_192, ModeEnum::MODE_CFB],
-            [CipherEnum::BLOCK_SIZE_192, ModeEnum::MODE_ECB],
-            [CipherEnum::BLOCK_SIZE_192, ModeEnum::MODE_NOFB],
-            [CipherEnum::BLOCK_SIZE_192, ModeEnum::MODE_OFB],
-            [CipherEnum::BLOCK_SIZE_256, ModeEnum::MODE_CBC],
-            [CipherEnum::BLOCK_SIZE_256, ModeEnum::MODE_CFB],
-            [CipherEnum::BLOCK_SIZE_256, ModeEnum::MODE_ECB],
-            [CipherEnum::BLOCK_SIZE_256, ModeEnum::MODE_NOFB],
-            [CipherEnum::BLOCK_SIZE_256, ModeEnum::MODE_OFB],
+            [AesEnum::METHOD_128],
+            [AesEnum::METHOD_192],
+            [AesEnum::METHOD_256],
         ];
     }
 }
