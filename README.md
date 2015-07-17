@@ -12,7 +12,7 @@ A simple class to handle AES encryption of data
 Install using composer
 
 ```
-composer require tebru/aes-encryption:0.1.*
+composer require tebru/aes-encryption
 ```
 
 ## Usage
@@ -29,18 +29,23 @@ $decrypted = $encrypter->decrypt($encrypted);
 
 The encrypt method is able to handle encryption of any kind of data because it serializes the data first.
 
-### Encryption Block Sizes
+### Encryption Methods
 
-Use the `CipherEnum` to pass in a block size to determine with Rijndael cipher to use.  Allowed values are `128`, `192`, and `256`.
+This library supports `aes128` `aes192` and `aes256`.  It uses `aes256` by default.
+
+Use the `AesEnum` to use a different method.
 
 ```php
-new AesEncrypter($key, CipherEnum::BLOCK_SIZE_256);
+new AesEncrypter($key, AesEnum::METHOD_128);
 ```
 
-### Encryption Modes
+### Encryption Strategy
 
-Use the `ModeEnum` to pass in an encryption mode.  Allowed values are `cbc`, `cfb`, `ecb`, `nofb`, and `ofb`.
+Current supported PHP extensions are `mcrypt` and `openssl`.  This library requires mcrypt, but will use openssl instead
+if it is available.
+
+Upon constructing the encrypter, you may force the usage of one or the other.
 
 ```php
-new AesEncrypter($key, CipherEnum::BLOCK_SIZE_128, ModeEnum::MODE_ECB);
+new AesEncrypter($key, AesEnum::METHOD_256, AesEncrypter::STRATEGY_MCRYPT);
 ```
